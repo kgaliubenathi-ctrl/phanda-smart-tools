@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SharpShootRouteImport } from './routes/sharp-shoot'
+import { Route as ResearchChommieRouteImport } from './routes/research-chommie'
+import { Route as PhandaPlannerRouteImport } from './routes/phanda-planner'
+import { Route as CvGrootmanRouteImport } from './routes/cv-grootman'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SharpShootRoute = SharpShootRouteImport.update({
+  id: '/sharp-shoot',
+  path: '/sharp-shoot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchChommieRoute = ResearchChommieRouteImport.update({
+  id: '/research-chommie',
+  path: '/research-chommie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhandaPlannerRoute = PhandaPlannerRouteImport.update({
+  id: '/phanda-planner',
+  path: '/phanda-planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CvGrootmanRoute = CvGrootmanRouteImport.update({
+  id: '/cv-grootman',
+  path: '/cv-grootman',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,88 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cv-grootman': typeof CvGrootmanRoute
+  '/phanda-planner': typeof PhandaPlannerRoute
+  '/research-chommie': typeof ResearchChommieRoute
+  '/sharp-shoot': typeof SharpShootRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cv-grootman': typeof CvGrootmanRoute
+  '/phanda-planner': typeof PhandaPlannerRoute
+  '/research-chommie': typeof ResearchChommieRoute
+  '/sharp-shoot': typeof SharpShootRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cv-grootman': typeof CvGrootmanRoute
+  '/phanda-planner': typeof PhandaPlannerRoute
+  '/research-chommie': typeof ResearchChommieRoute
+  '/sharp-shoot': typeof SharpShootRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cv-grootman'
+    | '/phanda-planner'
+    | '/research-chommie'
+    | '/sharp-shoot'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cv-grootman'
+    | '/phanda-planner'
+    | '/research-chommie'
+    | '/sharp-shoot'
+  id:
+    | '__root__'
+    | '/'
+    | '/cv-grootman'
+    | '/phanda-planner'
+    | '/research-chommie'
+    | '/sharp-shoot'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CvGrootmanRoute: typeof CvGrootmanRoute
+  PhandaPlannerRoute: typeof PhandaPlannerRoute
+  ResearchChommieRoute: typeof ResearchChommieRoute
+  SharpShootRoute: typeof SharpShootRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sharp-shoot': {
+      id: '/sharp-shoot'
+      path: '/sharp-shoot'
+      fullPath: '/sharp-shoot'
+      preLoaderRoute: typeof SharpShootRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research-chommie': {
+      id: '/research-chommie'
+      path: '/research-chommie'
+      fullPath: '/research-chommie'
+      preLoaderRoute: typeof ResearchChommieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phanda-planner': {
+      id: '/phanda-planner'
+      path: '/phanda-planner'
+      fullPath: '/phanda-planner'
+      preLoaderRoute: typeof PhandaPlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cv-grootman': {
+      id: '/cv-grootman'
+      path: '/cv-grootman'
+      fullPath: '/cv-grootman'
+      preLoaderRoute: typeof CvGrootmanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +137,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CvGrootmanRoute: CvGrootmanRoute,
+  PhandaPlannerRoute: PhandaPlannerRoute,
+  ResearchChommieRoute: ResearchChommieRoute,
+  SharpShootRoute: SharpShootRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
