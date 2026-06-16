@@ -139,6 +139,7 @@ function RootComponent() {
           </main>
         </SidebarInset>
       </SidebarProvider>
+      <Toaster />
     </QueryClientProvider>
   );
 }
