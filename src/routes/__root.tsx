@@ -94,6 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "PhandaSmart — Your AI Job Hustle Partner" },
+      { name: "description", content: "PhandaSmart is an AI-powered job seeker toolkit for South Africans." },
+      { property: "og:description", content: "PhandaSmart is an AI-powered job seeker toolkit for South Africans." },
+      { name: "twitter:description", content: "PhandaSmart is an AI-powered job seeker toolkit for South Africans." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/839e2c65-f7a3-44f1-af61-87e9cceea036/id-preview-fe90d2fb--2cb0ee29-3255-4f50-99c4-4a3adc88808a.lovable.app-1781620194489.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/839e2c65-f7a3-44f1-af61-87e9cceea036/id-preview-fe90d2fb--2cb0ee29-3255-4f50-99c4-4a3adc88808a.lovable.app-1781620194489.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
