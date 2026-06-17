@@ -67,7 +67,7 @@ function PlannerPage() {
   const updateTask = (di: number, ti: number, patch: Partial<Task>) =>
     setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: day.tasks.map((t, j) => j === ti ? { ...t, ...patch } : t) } : day) }));
   const addTask = (di: number) =>
-    setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: [...day.tasks, { text: "", done: false }] } : day) }));
+    setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: [...day.tasks, { text: "", done: false, priority: "Low" as Priority }] } : day) }));
   const removeTask = (di: number, ti: number) =>
     setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: day.tasks.filter((_, j) => j !== ti) } : day) }));
 
