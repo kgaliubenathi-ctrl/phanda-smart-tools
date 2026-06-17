@@ -81,6 +81,16 @@ function EmailPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Your Name"><Input value={data.yourName} onChange={(e) => update({ yourName: e.target.value })} placeholder="Sipho Dlamini" /></Field>
                 <Field label="Years of Experience"><Input value={data.years} onChange={(e) => update({ years: e.target.value })} placeholder="3" /></Field>
+                <Field label="Tone">
+                  <Select value={data.tone} onValueChange={(v) => update({ tone: v as Tone, subjectOverride: "", bodyOverride: "" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(["Formal", "Friendly", "Persuasive"] as Tone[]).map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <div className="md:col-span-2"><Field label="Key Skills"><Textarea rows={3} value={data.skills} onChange={(e) => update({ skills: e.target.value })} placeholder="Social media campaigns, copywriting, basic Photoshop, customer engagement" /></Field></div>
                 <div className="md:col-span-2"><Field label="Why this role? (one sentence)"><Textarea rows={2} value={data.why} onChange={(e) => update({ why: e.target.value })} placeholder="I admire your brand's commitment to local communities." /></Field></div>
               </div>
