@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { CalendarDays, Plus, Copy, RotateCcw, ChevronLeft, ChevronRight, CalendarIcon, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { format, startOfWeek, addDays, isSameDay } from "date-fns";
+import { CalendarDays, Plus, Copy, RotateCcw, ChevronLeft, ChevronRight, CalendarIcon, Trash2, Download, Bell, X } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { StepProgress } from "@/components/StepProgress";
 import { StepShell } from "@/components/StepShell";
@@ -56,8 +56,12 @@ const labels = ["Your Goal", "Your Weekly Plan"];
 function PlannerPage() {
   const [data, setData] = useFormPersist<PlannerData>("phandasmart:planner", initial);
   const [step, setStep] = useState(1);
+  const [reminderDismissed, setReminderDismissed] = useState(false);
 
-  // Generate on entering step 2 if empty; migrate older tasks missing priority
+  // Monday of current week
+  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
+  const dayDate = (di: number) => addDays(weekStart, di);
+
   useEffect(() => {
     if (step === 2 && data.days.length === 0) {
       setData((d) => ({ ...d, days: buildPlan(d.goal, d.status) }));
@@ -75,9 +79,45 @@ function PlannerPage() {
 
   const targetDate = data.targetDate ? new Date(data.targetDate) : undefined;
 
+  // Today's tasks for reminder banner
+  const today = new Date();
+  const todayTasks = step === 2
+    ? data.days.flatMap((day, di) => isSameDay(dayDate(di), today) ? day.tasks.filter(t => t.text.trim() && !t.done).map(t => ({ ...t, date: dayDate(di) })) : [])
+    : [];
+
+  const downloadPlan = () => {
+    const text = planToText(data, dayDate);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `phandasmart-plan-${format(weekStart, "yyyy-MM-dd")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Plan downloaded");
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 md:px-8 md:py-12">
       <PageHeader eyebrow="Tool 03" title="Phanda Planner" description="Turn your goal into a focused 7-day plan." icon={<CalendarDays className="h-6 w-6" />} />
+
+      {step === 2 && todayTasks.length > 0 && !reminderDismissed && (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <Bell className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="flex-1 text-sm">
+            <p className="font-semibold text-foreground">Today's tasks ({format(today, "EEEE, d MMM")})</p>
+            <ul className="mt-1 space-y-0.5 text-muted-foreground">
+              {todayTasks.map((t, i) => (
+                <li key={i}>• [{t.priority}] {t.text} <span className="text-xs">— due {format(t.date, "d MMM")}</span></li>
+              ))}
+            </ul>
+          </div>
+          <Button variant="ghost" size="sm" className="h-7 w-7 shrink-0 p-0" onClick={() => setReminderDismissed(true)}><X className="h-4 w-4" /></Button>
+        </div>
+      )}
+
       <Card className="p-6 md:p-8">
         <StepProgress current={step} labels={labels} />
         <div className="mt-8">
@@ -114,41 +154,52 @@ function PlannerPage() {
           {step === 2 && (
             <StepShell stepKey="2">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {data.days.map((day, di) => (
-                  <div key={day.name} className="rounded-xl border bg-card p-4 shadow-sm">
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="text-sm font-bold">{day.name}</p>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                        {day.tasks.filter((t) => t.done).length}/{day.tasks.length}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {day.tasks.map((t, ti) => (
-                        <div key={ti} className="space-y-1.5 rounded-lg border bg-background/40 p-2">
-                          <div className="flex items-start gap-2">
-                            <Checkbox checked={t.done} onCheckedChange={(v) => updateTask(di, ti, { done: !!v })} className="mt-1.5" />
-                            <Input value={t.text} onChange={(e) => updateTask(di, ti, { text: e.target.value, priority: t.priority })} className={cn("h-8 flex-1 text-sm", t.done && "line-through text-muted-foreground")} />
-                            <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={() => removeTask(di, ti)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                          </div>
-                          <div className="flex items-center gap-2 pl-6">
-                            <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", PRIORITY_STYLES[t.priority])}>{t.priority}</span>
-                            <Select value={t.priority} onValueChange={(v) => updateTask(di, ti, { priority: v as Priority })}>
-                              <SelectTrigger className="h-6 w-[90px] text-xs"><SelectValue /></SelectTrigger>
-                              <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
+                {data.days.map((day, di) => {
+                  const date = dayDate(di);
+                  const isToday = isSameDay(date, today);
+                  return (
+                    <div key={day.name} className={cn("rounded-xl border bg-card p-4 shadow-sm", isToday && "ring-2 ring-primary/40")}>
+                      <div className="mb-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold">{day.name}</p>
+                          <p className="text-[11px] text-muted-foreground">{format(date, "d MMM")}{isToday && " · Today"}</p>
                         </div>
-                      ))}
-                      <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={() => addTask(di)}>
-                        <Plus className="mr-1 h-3.5 w-3.5" /> Add task
-                      </Button>
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                          {day.tasks.filter((t) => t.done).length}/{day.tasks.length}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {day.tasks.map((t, ti) => (
+                          <div key={ti} className="space-y-1.5 rounded-lg border bg-background/40 p-2">
+                            <div className="flex items-start gap-2">
+                              <Checkbox checked={t.done} onCheckedChange={(v) => updateTask(di, ti, { done: !!v })} className="mt-1.5" />
+                              <Input value={t.text} onChange={(e) => updateTask(di, ti, { text: e.target.value, priority: t.priority })} className={cn("h-8 flex-1 text-sm", t.done && "line-through text-muted-foreground")} />
+                              <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={() => removeTask(di, ti)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 pl-6">
+                              <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", PRIORITY_STYLES[t.priority])}>{t.priority}</span>
+                              <Select value={t.priority} onValueChange={(v) => updateTask(di, ti, { priority: v as Priority })}>
+                                <SelectTrigger className="h-6 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+                              </Select>
+                              <span className="text-[10px] text-muted-foreground">Due {format(date, "d MMM")}</span>
+                            </div>
+                          </div>
+                        ))}
+                        <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={() => addTask(di)}>
+                          <Plus className="mr-1 h-3.5 w-3.5" /> Add task
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-6 flex flex-wrap gap-2">
-                <Button onClick={() => { navigator.clipboard.writeText(planToText(data)); toast.success("Plan copied"); }}>
+                <Button onClick={() => { navigator.clipboard.writeText(planToText(data, dayDate)); toast.success("Plan copied"); }}>
                   <Copy className="mr-1 h-4 w-4" /> Copy Full Plan
+                </Button>
+                <Button onClick={downloadPlan}>
+                  <Download className="mr-1 h-4 w-4" /> Download Plan
                 </Button>
                 <Button variant="outline" onClick={() => { setData((d) => ({ ...d, days: buildPlan(d.goal, d.status) })); toast.success("Plan reset"); }}>
                   <RotateCcw className="mr-1 h-4 w-4" /> Reset Plan
@@ -157,7 +208,15 @@ function PlannerPage() {
             </StepShell>
           )}
         </div>
-        <Nav step={step} total={2} setStep={setStep} />
+        <div className="mt-8 flex items-center justify-between border-t pt-6">
+          <Button variant="ghost" disabled={step === 1} onClick={() => setStep(step - 1)}><ChevronLeft className="mr-1 h-4 w-4" /> Back</Button>
+          <p className="text-xs text-muted-foreground">Step {step} of {labels.length}</p>
+          {step === 1 ? (
+            <Button onClick={() => setStep(step + 1)}>Next <ChevronRight className="ml-1 h-4 w-4" /></Button>
+          ) : (
+            <span className="w-[88px]" />
+          )}
+        </div>
       </Card>
     </div>
   );
@@ -165,16 +224,6 @@ function PlannerPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (<div className="space-y-1.5"><Label className="text-xs font-semibold text-muted-foreground">{label}</Label>{children}</div>);
-}
-
-function Nav({ step, total, setStep }: { step: number; total: number; setStep: (n: number) => void }) {
-  return (
-    <div className="mt-8 flex items-center justify-between border-t pt-6">
-      <Button variant="ghost" disabled={step === 1} onClick={() => setStep(step - 1)}><ChevronLeft className="mr-1 h-4 w-4" /> Back</Button>
-      <p className="text-xs text-muted-foreground">Step {step} of {total}</p>
-      <Button disabled={step === total} onClick={() => setStep(step + 1)}>Next <ChevronRight className="ml-1 h-4 w-4" /></Button>
-    </div>
-  );
 }
 
 function buildPlan(goal: string, status: string): Day[] {
@@ -214,12 +263,19 @@ function buildPlan(goal: string, status: string): Day[] {
   return DAY_NAMES.map((name) => ({ name, tasks: tasksByDay[name].map((text) => ({ text, done: false, priority: autoPriority(text) })) }));
 }
 
-function planToText(d: PlannerData): string {
+function planToText(d: PlannerData, dayDate: (di: number) => Date): string {
   return [
     `PhandaSmart Weekly Plan — ${d.goal}`,
     d.targetDate ? `Target: ${format(new Date(d.targetDate), "PPP")}` : "",
     `Status: ${d.status}`,
     "",
-    ...d.days.flatMap((day) => [day.name, ...day.tasks.map((t) => `  ${t.done ? "[x]" : "[ ]"} [${t.priority}] ${t.text}`), ""]),
+    ...d.days.flatMap((day, di) => {
+      const date = format(dayDate(di), "EEE d MMM yyyy");
+      return [
+        `${day.name} — ${date}`,
+        ...day.tasks.map((t) => `  ${t.done ? "[x]" : "[ ]"} [${t.priority}] ${t.text} (due ${date})`),
+        "",
+      ];
+    }),
   ].filter(Boolean).join("\n");
 }
