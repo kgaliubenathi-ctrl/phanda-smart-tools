@@ -122,10 +122,19 @@ function PlannerPage() {
                     </div>
                     <div className="space-y-2">
                       {day.tasks.map((t, ti) => (
-                        <div key={ti} className="flex items-start gap-2">
-                          <Checkbox checked={t.done} onCheckedChange={(v) => updateTask(di, ti, { done: !!v })} className="mt-1.5" />
-                          <Input value={t.text} onChange={(e) => updateTask(di, ti, { text: e.target.value })} className={cn("h-8 flex-1 text-sm", t.done && "line-through text-muted-foreground")} />
-                          <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={() => removeTask(di, ti)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <div key={ti} className="space-y-1.5 rounded-lg border bg-background/40 p-2">
+                          <div className="flex items-start gap-2">
+                            <Checkbox checked={t.done} onCheckedChange={(v) => updateTask(di, ti, { done: !!v })} className="mt-1.5" />
+                            <Input value={t.text} onChange={(e) => updateTask(di, ti, { text: e.target.value, priority: t.priority })} className={cn("h-8 flex-1 text-sm", t.done && "line-through text-muted-foreground")} />
+                            <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={() => removeTask(di, ti)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                          </div>
+                          <div className="flex items-center gap-2 pl-6">
+                            <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", PRIORITY_STYLES[t.priority])}>{t.priority}</span>
+                            <Select value={t.priority} onValueChange={(v) => updateTask(di, ti, { priority: v as Priority })}>
+                              <SelectTrigger className="h-6 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       ))}
                       <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={() => addTask(di)}>
