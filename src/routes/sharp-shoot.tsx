@@ -139,20 +139,43 @@ function Nav({ step, total, setStep }: { step: number; total: number; setStep: (
 function buildEmail(d: EmailData): { subject: string; body: string } {
   const role = d.jobTitle || "the advertised role";
   const company = d.company || "your company";
-  const greet = d.manager ? `Dear ${d.manager},` : "Dear Hiring Manager,";
   const name = d.yourName || "[Your Name]";
   const years = d.years ? `${d.years} year${d.years === "1" ? "" : "s"}` : "several years";
   const skills = d.skills || "the relevant skills required for this position";
-  const why = d.why || `I am drawn to ${company}'s reputation and the opportunity this role offers.`;
+  const why = d.why || `${company} stands out to me and this role fits where I want to grow.`;
   const src = d.source ? `via ${d.source}` : "";
+  const tone: Tone = d.tone || "Formal";
+  const v = d.variant % 2;
 
+  if (tone === "Friendly") {
+    const greet = d.manager ? `Hi ${d.manager},` : `Hi there,`;
+    const intros = [
+      `Hope you're having a great week! I came across the ${role} role at ${company} ${src} and I'd love to throw my hat in the ring.`,
+      `I hope you're doing well. I spotted the ${role} opening at ${company} ${src} and I'm really keen to apply.`,
+    ];
+    const subject = `Quick hello — ${role} application from ${name}`;
+    const body = `${greet}\n\n${intros[v]}\n\nI've spent ${years} working on ${skills}, and I think it lines up nicely with what your team is building. ${why}\n\nMy CV is attached — happy to jump on a quick call whenever suits you.\n\nThanks so much,\n${name}`;
+    return { subject, body };
+  }
+
+  if (tone === "Persuasive") {
+    const greet = d.manager ? `Dear ${d.manager},` : `Dear Hiring Team,`;
+    const intros = [
+      `${company} needs a ${role} who can deliver results from day one — and that is exactly what I bring to the table.`,
+      `When I read the ${role} brief at ${company} ${src}, it was clear this is a role where I can create immediate, measurable impact.`,
+    ];
+    const subject = `${role} — ${name} can deliver results for ${company}`;
+    const body = `${greet}\n\n${intros[v]}\n\nOver the past ${years} I have built proven strength in ${skills}, consistently turning effort into outcomes. ${why} I am confident I can do the same for ${company}.\n\nMy CV is attached for your review. I would value the chance to walk you through exactly how I can contribute to your team's next milestones.\n\nLooking forward to showing you the impact I can bring,\n${name}`;
+    return { subject, body };
+  }
+
+  // Formal (default)
+  const greet = d.manager ? `Dear ${d.manager},` : "Dear Hiring Manager,";
   const intros = [
     `I hope this email finds you well. I am writing to apply for the ${role} position at ${company}, which I came across ${src}.`,
     `I trust you are well. Please accept this email as my application for the ${role} role at ${company} that I saw advertised ${src}.`,
   ];
-  const intro = intros[d.variant % intros.length];
-
   const subject = `Application for ${role} — ${name}`;
-  const body = `${greet}\n\n${intro}\n\nWith ${years} of experience, I bring strong capabilities in ${skills}. ${why}\n\nI have attached my CV for your consideration and would welcome the opportunity to discuss how I can contribute to the ${company} team. I am available for an interview at your convenience and can be reached on the contact details below.\n\nThank you for taking the time to consider my application.\n\nKind regards,\n${name}`;
+  const body = `${greet}\n\n${intros[v]}\n\nWith ${years} of experience, I bring strong capabilities in ${skills}. ${why}\n\nI have attached my CV for your consideration and would welcome the opportunity to discuss how I can contribute to the ${company} team. I am available for an interview at your convenience and can be reached on the contact details below.\n\nThank you for taking the time to consider my application.\n\nKind regards,\n${name}`;
   return { subject, body };
 }
