@@ -99,6 +99,7 @@ function ResearchPage() {
                 <ReportField icon="💼" label="Work Culture & Values" value={data.culture} onChange={(v) => update({ culture: v })} rows={3} />
                 <ReportField icon="❓" label="Likely Interview Questions" value={data.questions} onChange={(v) => update({ questions: v })} rows={6} />
                 <ReportField icon="💡" label="Tips to Impress" value={data.tips} onChange={(v) => update({ tips: v })} rows={4} />
+                <ReportField icon="📊" label="Insights & Recommendations" value={data.insights} onChange={(v) => update({ insights: v })} rows={4} />
 
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => { navigator.clipboard.writeText(fullReport()); toast.success("Report copied"); }}>
