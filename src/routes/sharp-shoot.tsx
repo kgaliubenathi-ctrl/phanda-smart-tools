@@ -25,15 +25,18 @@ export const Route = createFileRoute("/sharp-shoot")({
   component: EmailPage,
 });
 
+type Tone = "Formal" | "Friendly" | "Persuasive";
 type EmailData = {
   jobTitle: string; company: string; manager: string; source: string;
   yourName: string; skills: string; years: string; why: string;
+  tone: Tone;
   subjectOverride: string; bodyOverride: string; variant: number;
 };
 
 const initial: EmailData = {
   jobTitle: "", company: "", manager: "", source: "LinkedIn",
   yourName: "", skills: "", years: "", why: "",
+  tone: "Formal",
   subjectOverride: "", bodyOverride: "", variant: 0,
 };
 
