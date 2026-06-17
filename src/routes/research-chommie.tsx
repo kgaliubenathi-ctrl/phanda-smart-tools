@@ -62,7 +62,8 @@ function ResearchPage() {
       "🎯 WHAT THEY'RE KNOWN FOR", d.knownFor, "",
       "💼 WORK CULTURE & VALUES", d.culture, "",
       "❓ LIKELY INTERVIEW QUESTIONS", d.questions, "",
-      "💡 TIPS TO IMPRESS", d.tips,
+      "💡 TIPS TO IMPRESS", d.tips, "",
+      "📊 INSIGHTS & RECOMMENDATIONS", d.insights,
     ].join("\n");
   };
 
