@@ -218,6 +218,6 @@ function planToText(d: PlannerData): string {
     d.targetDate ? `Target: ${format(new Date(d.targetDate), "PPP")}` : "",
     `Status: ${d.status}`,
     "",
-    ...d.days.flatMap((day) => [day.name, ...day.tasks.map((t) => `  ${t.done ? "[x]" : "[ ]"} ${t.text}`), ""]),
+    ...d.days.flatMap((day) => [day.name, ...day.tasks.map((t) => `  ${t.done ? "[x]" : "[ ]"} [${t.priority}] ${t.text}`), ""]),
   ].filter(Boolean).join("\n");
 }
