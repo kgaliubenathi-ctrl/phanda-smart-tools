@@ -27,13 +27,13 @@ export const Route = createFileRoute("/research-chommie")({
 
 type ResearchData = {
   company: string; industry: string; role: string; country: string;
-  overview: string; knownFor: string; culture: string; questions: string; tips: string;
+  overview: string; knownFor: string; culture: string; questions: string; tips: string; insights: string;
   generated: boolean;
 };
 
 const initial: ResearchData = {
   company: "", industry: "Technology", role: "", country: "South Africa",
-  overview: "", knownFor: "", culture: "", questions: "", tips: "", generated: false,
+  overview: "", knownFor: "", culture: "", questions: "", tips: "", insights: "", generated: false,
 };
 
 const INDUSTRIES = ["Technology", "Finance & Banking", "Retail", "Mining", "Telecommunications", "Healthcare", "Education", "Manufacturing", "Marketing & Media", "Government", "Other"];
