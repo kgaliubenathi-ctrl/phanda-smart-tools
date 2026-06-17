@@ -29,9 +29,25 @@ export const Route = createFileRoute("/phanda-planner")({
   component: PlannerPage,
 });
 
-type Task = { text: string; done: boolean };
+type Priority = "High" | "Medium" | "Low";
+type Task = { text: string; done: boolean; priority: Priority };
 type Day = { name: string; tasks: Task[] };
 type PlannerData = { goal: string; targetDate?: string; status: string; days: Day[] };
+
+const PRIORITIES: Priority[] = ["High", "Medium", "Low"];
+
+function autoPriority(text: string): Priority {
+  const t = text.toLowerCase();
+  if (/\b(apply|application|follow[- ]?up|interview|submit)\b/.test(t)) return "High";
+  if (/\b(research|prepare|update|review|practice)\b/.test(t)) return "Medium";
+  return "Low";
+}
+
+const PRIORITY_STYLES: Record<Priority, string> = {
+  High: "bg-destructive/10 text-destructive border-destructive/20",
+  Medium: "bg-amber-100 text-amber-700 border-amber-200",
+  Low: "bg-primary/10 text-primary border-primary/20",
+};
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const initial: PlannerData = { goal: "", targetDate: undefined, status: "Unemployed", days: [] };
