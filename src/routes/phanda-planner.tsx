@@ -200,7 +200,7 @@ function buildPlan(goal: string, status: string): Day[] {
       "Plan top 3 priorities for the coming week",
     ],
   };
-  return DAY_NAMES.map((name) => ({ name, tasks: tasksByDay[name].map((text) => ({ text, done: false })) }));
+  return DAY_NAMES.map((name) => ({ name, tasks: tasksByDay[name].map((text) => ({ text, done: false, priority: autoPriority(text) })) }));
 }
 
 function planToText(d: PlannerData): string {
