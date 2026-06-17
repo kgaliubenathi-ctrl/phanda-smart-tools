@@ -57,10 +57,12 @@ function PlannerPage() {
   const [data, setData] = useFormPersist<PlannerData>("phandasmart:planner", initial);
   const [step, setStep] = useState(1);
 
-  // Generate on entering step 2 if empty
+  // Generate on entering step 2 if empty; migrate older tasks missing priority
   useEffect(() => {
     if (step === 2 && data.days.length === 0) {
       setData((d) => ({ ...d, days: buildPlan(d.goal, d.status) }));
+    } else if (step === 2 && data.days.some((day) => day.tasks.some((t) => !t.priority))) {
+      setData((d) => ({ ...d, days: d.days.map((day) => ({ ...day, tasks: day.tasks.map((t) => ({ ...t, priority: t.priority ?? autoPriority(t.text) })) })) }));
     }
   }, [step]); // eslint-disable-line
 
