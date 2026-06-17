@@ -29,9 +29,25 @@ export const Route = createFileRoute("/phanda-planner")({
   component: PlannerPage,
 });
 
-type Task = { text: string; done: boolean };
+type Priority = "High" | "Medium" | "Low";
+type Task = { text: string; done: boolean; priority: Priority };
 type Day = { name: string; tasks: Task[] };
 type PlannerData = { goal: string; targetDate?: string; status: string; days: Day[] };
+
+const PRIORITIES: Priority[] = ["High", "Medium", "Low"];
+
+function autoPriority(text: string): Priority {
+  const t = text.toLowerCase();
+  if (/\b(apply|application|follow[- ]?up|interview|submit)\b/.test(t)) return "High";
+  if (/\b(research|prepare|update|review|practice)\b/.test(t)) return "Medium";
+  return "Low";
+}
+
+const PRIORITY_STYLES: Record<Priority, string> = {
+  High: "bg-destructive/10 text-destructive border-destructive/20",
+  Medium: "bg-amber-100 text-amber-700 border-amber-200",
+  Low: "bg-primary/10 text-primary border-primary/20",
+};
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const initial: PlannerData = { goal: "", targetDate: undefined, status: "Unemployed", days: [] };
@@ -41,17 +57,19 @@ function PlannerPage() {
   const [data, setData] = useFormPersist<PlannerData>("phandasmart:planner", initial);
   const [step, setStep] = useState(1);
 
-  // Generate on entering step 2 if empty
+  // Generate on entering step 2 if empty; migrate older tasks missing priority
   useEffect(() => {
     if (step === 2 && data.days.length === 0) {
       setData((d) => ({ ...d, days: buildPlan(d.goal, d.status) }));
+    } else if (step === 2 && data.days.some((day) => day.tasks.some((t) => !t.priority))) {
+      setData((d) => ({ ...d, days: d.days.map((day) => ({ ...day, tasks: day.tasks.map((t) => ({ ...t, priority: t.priority ?? autoPriority(t.text) })) })) }));
     }
   }, [step]); // eslint-disable-line
 
   const updateTask = (di: number, ti: number, patch: Partial<Task>) =>
     setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: day.tasks.map((t, j) => j === ti ? { ...t, ...patch } : t) } : day) }));
   const addTask = (di: number) =>
-    setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: [...day.tasks, { text: "", done: false }] } : day) }));
+    setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: [...day.tasks, { text: "", done: false, priority: "Low" as Priority }] } : day) }));
   const removeTask = (di: number, ti: number) =>
     setData((d) => ({ ...d, days: d.days.map((day, i) => i === di ? { ...day, tasks: day.tasks.filter((_, j) => j !== ti) } : day) }));
 
@@ -106,10 +124,19 @@ function PlannerPage() {
                     </div>
                     <div className="space-y-2">
                       {day.tasks.map((t, ti) => (
-                        <div key={ti} className="flex items-start gap-2">
-                          <Checkbox checked={t.done} onCheckedChange={(v) => updateTask(di, ti, { done: !!v })} className="mt-1.5" />
-                          <Input value={t.text} onChange={(e) => updateTask(di, ti, { text: e.target.value })} className={cn("h-8 flex-1 text-sm", t.done && "line-through text-muted-foreground")} />
-                          <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={() => removeTask(di, ti)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <div key={ti} className="space-y-1.5 rounded-lg border bg-background/40 p-2">
+                          <div className="flex items-start gap-2">
+                            <Checkbox checked={t.done} onCheckedChange={(v) => updateTask(di, ti, { done: !!v })} className="mt-1.5" />
+                            <Input value={t.text} onChange={(e) => updateTask(di, ti, { text: e.target.value, priority: t.priority })} className={cn("h-8 flex-1 text-sm", t.done && "line-through text-muted-foreground")} />
+                            <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={() => removeTask(di, ti)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                          </div>
+                          <div className="flex items-center gap-2 pl-6">
+                            <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", PRIORITY_STYLES[t.priority])}>{t.priority}</span>
+                            <Select value={t.priority} onValueChange={(v) => updateTask(di, ti, { priority: v as Priority })}>
+                              <SelectTrigger className="h-6 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>)}</SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       ))}
                       <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={() => addTask(di)}>
@@ -184,7 +211,7 @@ function buildPlan(goal: string, status: string): Day[] {
       "Plan top 3 priorities for the coming week",
     ],
   };
-  return DAY_NAMES.map((name) => ({ name, tasks: tasksByDay[name].map((text) => ({ text, done: false })) }));
+  return DAY_NAMES.map((name) => ({ name, tasks: tasksByDay[name].map((text) => ({ text, done: false, priority: autoPriority(text) })) }));
 }
 
 function planToText(d: PlannerData): string {
@@ -193,6 +220,6 @@ function planToText(d: PlannerData): string {
     d.targetDate ? `Target: ${format(new Date(d.targetDate), "PPP")}` : "",
     `Status: ${d.status}`,
     "",
-    ...d.days.flatMap((day) => [day.name, ...day.tasks.map((t) => `  ${t.done ? "[x]" : "[ ]"} ${t.text}`), ""]),
+    ...d.days.flatMap((day) => [day.name, ...day.tasks.map((t) => `  ${t.done ? "[x]" : "[ ]"} [${t.priority}] ${t.text}`), ""]),
   ].filter(Boolean).join("\n");
 }

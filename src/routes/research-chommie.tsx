@@ -27,13 +27,13 @@ export const Route = createFileRoute("/research-chommie")({
 
 type ResearchData = {
   company: string; industry: string; role: string; country: string;
-  overview: string; knownFor: string; culture: string; questions: string; tips: string;
+  overview: string; knownFor: string; culture: string; questions: string; tips: string; insights: string;
   generated: boolean;
 };
 
 const initial: ResearchData = {
   company: "", industry: "Technology", role: "", country: "South Africa",
-  overview: "", knownFor: "", culture: "", questions: "", tips: "", generated: false,
+  overview: "", knownFor: "", culture: "", questions: "", tips: "", insights: "", generated: false,
 };
 
 const INDUSTRIES = ["Technology", "Finance & Banking", "Retail", "Mining", "Telecommunications", "Healthcare", "Education", "Manufacturing", "Marketing & Media", "Government", "Other"];
@@ -62,7 +62,8 @@ function ResearchPage() {
       "🎯 WHAT THEY'RE KNOWN FOR", d.knownFor, "",
       "💼 WORK CULTURE & VALUES", d.culture, "",
       "❓ LIKELY INTERVIEW QUESTIONS", d.questions, "",
-      "💡 TIPS TO IMPRESS", d.tips,
+      "💡 TIPS TO IMPRESS", d.tips, "",
+      "📊 INSIGHTS & RECOMMENDATIONS", d.insights,
     ].join("\n");
   };
 
@@ -98,6 +99,7 @@ function ResearchPage() {
                 <ReportField icon="💼" label="Work Culture & Values" value={data.culture} onChange={(v) => update({ culture: v })} rows={3} />
                 <ReportField icon="❓" label="Likely Interview Questions" value={data.questions} onChange={(v) => update({ questions: v })} rows={6} />
                 <ReportField icon="💡" label="Tips to Impress" value={data.tips} onChange={(v) => update({ tips: v })} rows={4} />
+                <ReportField icon="📊" label="Insights & Recommendations" value={data.insights} onChange={(v) => update({ insights: v })} rows={4} />
 
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => { navigator.clipboard.writeText(fullReport()); toast.success("Report copied"); }}>
@@ -146,5 +148,6 @@ function buildReport(d: ResearchData): Partial<ResearchData> {
     culture: `Expect a professional, results-driven environment that values teamwork, integrity, and continuous learning. Like most leading SA employers, ${c} likely emphasises transformation, diversity, and ethical conduct. Hybrid or flexible work is increasingly common at this level.`,
     questions: `• Why do you want to work at ${c} specifically?\n• Walk us through a project where you delivered measurable results for ${role}.\n• How do you handle competing priorities under tight deadlines?\n• Describe a time you worked with a difficult stakeholder and what you learned.\n• Where do you see yourself in three years, and how does ${c} fit that picture?`,
     tips: `• Reference one or two recent ${c} announcements, products, or campaigns — show you have done your homework.\n• Connect your experience to ${c}'s priorities in ${ind}.\n• Prepare 2 thoughtful questions for the panel about team, growth, or strategy.\n• Be ready to discuss B-BBEE awareness and your contribution to a diverse workplace.\n• Dress professionally, arrive 10 minutes early, and bring a printed CV.`,
+    insights: `Insight: The ${ind} sector in ${d.country} is being reshaped by digital transformation, tightening margins, and rising customer expectations — ${c} is actively investing in technology, talent, and customer experience to defend and grow its position.\nRecommendation: Position yourself as a ${role} who blends strong fundamentals with adaptability. In the interview, lead with one concrete example of measurable impact, then tie it directly to a current ${c} priority (a recent product, partnership, or strategic theme) so they can immediately picture you adding value from week one.`,
   };
 }
